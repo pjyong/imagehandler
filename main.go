@@ -116,12 +116,12 @@ func list(w http.ResponseWriter, r *http.Request) {
 	kVStoreMutex.RUnlock()
 }
 
-function ListTask(w http.ResponseWriter, r *http.Request){
-	
+func ListTask(w http.ResponseWriter, r *http.Request) {
+
 }
-function NewTask(w http.ResponseWriter, r *http.Request){
-	
+func NewTask(w http.ResponseWriter, r *http.Request) {
+
 }
-function GetTask(w http.ResponseWriter, r *http.Request){
-	
+func GetTask(w http.ResponseWriter, r *http.Request) {
+
 }
