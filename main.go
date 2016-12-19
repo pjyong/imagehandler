@@ -1,14 +1,25 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"sync"
 )
 
 var kvStorage map[string]string
 var kVStoreMutex sync.RWMutex
+
+// 任务列表
+var datastore map[int]Task
+var datastoreMutex sync.RWMutex
+
+type Task struct {
+	Id    int `json:"id"`
+	State int `json:"state"`
+}
 
 func main() {
 	kvStorage = make(map[string]string)
@@ -117,11 +128,75 @@ func list(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListTask(w http.ResponseWriter, r *http.Request) {
-
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Error:非法请求")
+		return
+	}
+	kVStoreMutex.RLock()
+	for key, value := range datastore {
+		fmt.Fprintln(w, key, ": ", "id:", value.Id, " state:", value.State)
+	}
+	kVStoreMutex.RUnlock()
 }
 func NewTask(w http.ResponseWriter, r *http.Request) {
-
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Error:非法请求")
+		return
+	}
+	kVStoreMutex.Lock()
+	taskToAdd := Task{
+		len(datastore), 0,
+	}
+	datastore[taskToAdd.Id] = taskToAdd
+	kVStoreMutex.Unlock()
+	fmt.Fprint(w, taskToAdd.Id)
 }
 func GetTask(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Error:非法请求")
+		return
+	}
+	values, err := url.ParseQuery(r.URL.RawQuery)
+	if err != nil {
+		fmt.Fprint(w, err)
+		return
+	}
+	if len(values.Get("id")) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "错误参数")
+		return
+	}
 
+	id, err := strconv.Atoi(string(values.Get("id")))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "错误参数")
+		return
+	}
+
+	datastoreMutex.RLock()
+	bIsInError := err != nil || id >= len(datastore)
+	datastoreMutex.RUnlock()
+
+	if bIsInError {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Wrong input")
+		return
+	}
+	datastoreMutex.RLock()
+	value := datastore[id]
+	datastoreMutex.RUnlock()
+
+	response, err := json.Marshal(value)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err)
+		return
+	}
+
+	fmt.Fprint(w, string(response))
 }
