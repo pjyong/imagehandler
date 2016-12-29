@@ -78,7 +78,6 @@ func main() {
 			for {
 				myTask, err := getNewTask(masterLocation)
 				if err != nil {
-					fmt.Println(err)
 					fmt.Println("Waiting 2 second timeout...")
 					time.Sleep(time.Second * 2)
 					continue
@@ -86,7 +85,8 @@ func main() {
 
 				myImage, err := getImageFromStorage(storageLocation, myTask)
 				if err != nil {
-					fmt.Println(err)
+					// 如果获取不到图片，那么将任务设置成完成
+					registerFinishedTask(masterLocation, myTask)
 					fmt.Println("Waiting 2 second timeout...")
 					time.Sleep(time.Second * 2)
 					continue

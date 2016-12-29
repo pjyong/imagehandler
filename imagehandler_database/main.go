@@ -207,7 +207,7 @@ func SendTask(w http.ResponseWriter, r *http.Request) {
 	oNFTMutex.Lock()
 	datastoreMutex.Lock()
 	for i := oldestUnfinishedTask; i < len(datastore); i++ {
-		if datastore[i].State == 2 && i == oldestUnfinishedTask {
+		if datastore[oldestUnfinishedTask].State == 2 {
 			oldestUnfinishedTask++
 			continue
 		}

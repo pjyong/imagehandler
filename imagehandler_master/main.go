@@ -77,12 +77,13 @@ func newImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("http://" + storageLocation + "/receiveimage?id=" + string(id) + "&state=working")
-	_, err = http.Post("http://"+storageLocation+"/receiveimage?id="+string(id)+"&state=working", "image", r.Body)
+	t, err := http.Post("http://"+storageLocation+"/receiveimage?id="+string(id)+"&state=working", "image", r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, "Error:", err)
 		return
 	}
+	fmt.Println(t)
 	fmt.Fprint(w, string(id))
 
 }

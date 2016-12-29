@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+var baseImageDirectory string = "/home/june/tmp/"
+
 func main() {
 	if !registerInKVStore() {
 		return
@@ -51,7 +53,16 @@ func ReceiveImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(values.Get("id"))
-	file, err := os.Create("/home/june/tmp/" + values.Get("state") + "/" + values.Get("id") + ".png")
+	fmt.Println(values.Get("state"))
+	if _, err = os.Stat(baseImageDirectory + values.Get("state") + "/"); os.IsNotExist(err) {
+		err = os.Mkdir(baseImageDirectory+values.Get("state")+"/", 0777)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Error:", err)
+			return
+		}
+	}
+	file, err := os.Create(baseImageDirectory + values.Get("state") + "/" + values.Get("id") + ".png")
 	defer file.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -96,7 +107,7 @@ func ServeImage(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Error:", err)
 		return
 	}
-	file, err := os.Create("/home/june/tmp/" + values.Get("state") + "/" + values.Get("id") + ".png")
+	file, err := os.Open(baseImageDirectory + values.Get("state") + "/" + values.Get("id") + ".png")
 	defer file.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
